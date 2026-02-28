@@ -10,18 +10,23 @@
   <body class="bg-slate-100 text-slate-900">
     <div class="min-h-screen">
       <header class="sticky top-0 z-30 border-b border-slate-200 bg-white/90 backdrop-blur">
-        <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
-          <div>
+        <div class="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:px-6 lg:px-8">
+          <button
+            id="open-menu"
+            class="inline-flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg border border-slate-300 text-slate-700 shadow-sm transition hover:bg-slate-100"
+            type="button"
+            aria-label="메뉴 열기"
+          >
+            <span class="flex flex-col items-center gap-1" aria-hidden="true">
+              <span class="h-0.5 w-5 rounded bg-current"></span>
+              <span class="h-0.5 w-5 rounded bg-current"></span>
+              <span class="h-0.5 w-5 rounded bg-current"></span>
+            </span>
+          </button>
+          <div class="min-w-0 flex-1">
             <h1 class="text-xl font-bold sm:text-2xl">AI/ML Python 실습 클래스</h1>
             <p class="text-sm text-slate-600">좌측 메뉴에서 챕터를 열고 실행해 코드와 결과를 동시에 확인하세요.</p>
           </div>
-          <button
-            id="open-menu"
-            class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-blue-700"
-            type="button"
-          >
-            메뉴 열기
-          </button>
         </div>
       </header>
 
@@ -50,14 +55,14 @@
 
     <aside
       id="offcanvas"
-      class="fixed left-0 top-0 z-50 h-full w-[min(90vw,400px)] -translate-x-full border-r border-slate-200 bg-white shadow-2xl transition-transform duration-300"
+      class="fixed left-0 top-0 z-50 flex h-full w-[min(90vw,400px)] -translate-x-full flex-col border-r border-slate-200 bg-white shadow-2xl transition-transform duration-300"
       aria-hidden="true"
     >
       <div class="flex items-center justify-between border-b border-slate-200 px-4 py-3">
         <h2 class="font-bold">챕터 메뉴</h2>
         <button id="close-menu" class="rounded-md px-2 py-1 text-slate-600 hover:bg-slate-100" type="button">닫기</button>
       </div>
-      <div class="p-3">
+      <div class="min-h-0 flex-1 overflow-y-auto p-3">
         <ul id="chapter-list" class="space-y-2"></ul>
       </div>
     </aside>
