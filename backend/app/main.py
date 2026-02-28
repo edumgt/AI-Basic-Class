@@ -35,6 +35,11 @@ class ChapterRunResponse(BaseModel):
     result: dict[str, Any]
 
 
+class ChapterSourceResponse(BaseModel):
+    chapter: str
+    source: str
+
+
 def load_chapters() -> list[ChapterSummary]:
     items: list[ChapterSummary] = []
     for chapter_dir in sorted(CHAPTERS_DIR.glob("chapter*")):
@@ -77,6 +82,16 @@ def run_chapter(chapter_id: str) -> ChapterRunResponse:
 
     result = namespace["run"]()
     return ChapterRunResponse(chapter=chapter_id, result=result)
+
+
+@app.get("/api/chapters/{chapter_id}/source", response_model=ChapterSourceResponse)
+def chapter_source(chapter_id: str) -> ChapterSourceResponse:
+    chapter_path = CHAPTERS_DIR / chapter_id / "practice.py"
+    if not chapter_path.exists():
+        raise HTTPException(status_code=404, detail="chapter not found")
+
+    source = chapter_path.read_text(encoding="utf-8")
+    return ChapterSourceResponse(chapter=chapter_id, source=source)
 
 
 @app.get("/")
