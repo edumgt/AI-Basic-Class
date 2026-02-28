@@ -15,10 +15,10 @@
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-uvicorn backend.app.main:app --reload --host 0.0.0.0 --port 8000
+uvicorn backend.app.main:app --reload --host 0.0.0.0 --port 8888
 ```
 
-브라우저에서 `http://localhost:8000` 접속 후 챕터를 실행하면 결과(JSON)를 확인할 수 있습니다.
+브라우저에서 `http://localhost:8888` 접속 후 챕터를 실행하면 결과(JSON)를 확인할 수 있습니다.
 
 ## 학습 흐름
 
