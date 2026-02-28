@@ -26,3 +26,4 @@ uvicorn backend.app.main:app --reload --host 0.0.0.0 --port 8000
 2. chapter05~11: 핵심 ML 모델 + 평가/검증
 3. chapter12~18: 실무형 전처리/재현성/배포 준비
 4. chapter19~20: FastAPI 서빙 및 통합 미니 프로젝트
+5. chapter21: 신경망 모델, 순전파/역전파, 소프트맥스, 크로스 엔트로피, 경사하강법

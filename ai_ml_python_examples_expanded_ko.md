@@ -325,7 +325,80 @@ f1 = f1_score(y_test, pred)
 
 ---
 
-## 9. 개발자 추천 학습 순서
+
+
+## 9. 신경망 모델: 가중치 행렬, 순전파, softmax
+
+신경망(Neural Network)은 층(layer)마다 **행렬곱 + 활성화 함수**를 반복합니다.
+
+```python
+import numpy as np
+
+X = np.array([[0.2, 0.1, 0.7, 0.0]])  # (batch, input_dim)
+W1 = np.random.randn(4, 5) * 0.1       # (input_dim, hidden_dim)
+b1 = np.zeros((1, 5))
+W2 = np.random.randn(5, 3) * 0.1       # (hidden_dim, num_classes)
+b2 = np.zeros((1, 3))
+
+z1 = X @ W1 + b1
+a1 = np.maximum(0, z1)                 # ReLU
+logits = a1 @ W2 + b2
+
+exp_scores = np.exp(logits - logits.max(axis=1, keepdims=True))
+probs = exp_scores / exp_scores.sum(axis=1, keepdims=True)  # softmax
+print(probs)
+```
+
+핵심 포인트:
+- `W1`, `W2`가 바로 가중치 행렬입니다.
+- 출력층에서 softmax를 쓰면 다중분류 확률을 만들 수 있습니다.
+
+---
+
+## 10. fitting: 크로스 엔트로피 + 역전파 + 경사하강법
+
+`fit()` 내부에서는 아래 과정을 반복합니다.
+
+```python
+# y_one_hot: (batch, num_classes)
+loss = -np.mean(np.sum(y_one_hot * np.log(probs + 1e-12), axis=1))
+
+# backward(핵심 아이디어)
+dlogits = (probs - y_one_hot) / X.shape[0]
+dW2 = a1.T @ dlogits
+
+# gradient descent update
+W2 -= lr * dW2
+```
+
+핵심 포인트:
+- 크로스 엔트로피는 정답 클래스 확률을 높이도록 학습시킵니다.
+- 역전파는 각 가중치의 기울기(`dW`)를 계산합니다.
+- 경사하강법은 `W = W - lr * dW`로 업데이트합니다.
+
+---
+
+## 11. CNN 핵심 아이디어(합성곱)
+
+CNN은 이미지의 로컬 패턴(엣지, 질감)을 필터로 추출합니다.
+
+```python
+import numpy as np
+
+patch = np.array([[1, 2, 0], [0, 1, 3], [2, 1, 0]])
+kernel = np.array([[1, 0, -1], [1, 0, -1], [1, 0, -1]])
+
+conv_value = np.sum(patch * kernel)
+print(conv_value)
+```
+
+핵심 포인트:
+- 커널은 학습되는 작은 가중치 행렬입니다.
+- CNN도 결국 `loss -> backward -> gradient descent` 흐름으로 학습됩니다.
+
+---
+
+## 12. 개발자 추천 학습 순서
 
 1. 선형회귀: `y = wx + b`
 2. 로지스틱 회귀: 분류 + 확률
@@ -336,7 +409,7 @@ f1 = f1_score(y_test, pred)
 
 ---
 
-## 10. 핵심 요약
+## 13. 핵심 요약
 
 - AI/ML은 결국 **입력 -> 예측 -> 오차 계산 -> 수정**의 반복입니다.
 - 회귀는 숫자를 맞추고, 분류는 라벨을 맞춥니다.
