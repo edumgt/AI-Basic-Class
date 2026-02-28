@@ -461,7 +461,140 @@ lasso = Lasso(alpha=1.0)  # L1 정규화 계열
 
 ---
 
-## 16. 수식 읽는 실전 요령
+
+
+## 16. 소프트맥스(Softmax)
+
+### 수식
+
+```text
+softmax(z_i) = exp(z_i) / Σ exp(z_j)
+```
+
+### 의미
+여러 클래스 점수(logit)를 **합이 1인 확률 분포**로 바꿉니다.
+
+### Python 대응
+
+```python
+import numpy as np
+
+logits = np.array([2.2, 0.3, -1.0])
+exp_scores = np.exp(logits - np.max(logits))
+probs = exp_scores / exp_scores.sum()
+print(probs, probs.sum())
+```
+
+---
+
+## 17. 다중분류 크로스 엔트로피
+
+### 수식
+
+```text
+Loss = - Σ y_i * log(p_i)
+```
+
+### 의미
+- `y_i`: 원-핫 정답 벡터
+- `p_i`: softmax 확률
+- 정답 클래스 확률이 낮을수록 손실이 커집니다.
+
+### Python 대응
+
+```python
+import numpy as np
+
+y_one_hot = np.array([0, 1, 0])
+p = np.array([0.1, 0.8, 0.1])
+loss = -np.sum(y_one_hot * np.log(p + 1e-12))
+print(loss)
+```
+
+---
+
+## 18. 순전파(Forward)와 역전파(Backward)
+
+### 순전파 수식
+
+```text
+z1 = XW1 + b1
+a1 = ReLU(z1)
+z2 = a1W2 + b2
+p = softmax(z2)
+```
+
+### 역전파 핵심 식
+
+```text
+dz2 = p - y
+
+dW2 = a1^T dz2
+
+da1 = dz2 W2^T
+
+dz1 = da1 * ReLU'(z1)
+
+dW1 = X^T dz1
+```
+
+### 의미
+- 순전파: 입력 -> 예측 확률
+- 역전파: 손실 -> 각 가중치에 대한 기울기 계산
+
+---
+
+## 19. fitting(학습 루프)과 경사하강법
+
+### 수식
+
+```text
+W := W - lr * dW
+b := b - lr * db
+```
+
+### Python 대응
+
+```python
+for epoch in range(epochs):
+    # forward
+    # loss
+    # backward
+    W -= lr * dW
+    b -= lr * db
+```
+
+### 개발자 메모
+- `fit()`은 내부적으로 이 과정을 여러 epoch 반복합니다.
+- loss가 점진적으로 감소하면 정상 학습 가능성이 높습니다.
+
+---
+
+## 20. CNN의 기본 합성곱(Convolution)
+
+### 수식
+
+```text
+S(i, j) = (X * K) 의 지역합
+```
+
+### 의미
+입력 이미지의 작은 영역(patch)과 필터(kernel)를 곱해서 더한 값을 feature map으로 만듭니다.
+
+### Python 대응
+
+```python
+import numpy as np
+
+patch = np.array([[1, 2, 0], [0, 1, 3], [2, 1, 0]])
+kernel = np.array([[1, 0, -1], [1, 0, -1], [1, 0, -1]])
+conv_value = np.sum(patch * kernel)
+print(conv_value)
+```
+
+---
+
+## 21. 수식 읽는 실전 요령
 
 문서에서 식을 보면 아래 순서로 해석하면 됩니다.
 
@@ -476,7 +609,7 @@ lasso = Lasso(alpha=1.0)  # L1 정규화 계열
 
 ---
 
-## 17. 핵심 요약
+## 22. 핵심 요약
 
 - 수식은 대부분 **예측 공식 / 손실 공식 / 업데이트 공식** 셋 중 하나입니다.
 - `y_hat = wx + b` 는 가장 기본이 되는 예측 식입니다.
