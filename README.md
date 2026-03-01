@@ -8,6 +8,8 @@
 - `backend/app/main.py`: FastAPI 백엔드
 - `frontend/`: 브라우저에서 챕터 실행/결과 확인 UI
 - `requirements.txt`: 실행 의존성
+- `DOCS/`: 학습 문서 인덱스 및 확장 설명 문서
+- `scripts/`: 자동 생성/검증 스크립트
 
 ## 실행 방법
 
@@ -26,6 +28,20 @@ uvicorn backend.app.main:app --reload --host 0.0.0.0 --port 8888
 ./scripts/runtime_smoke_check.sh
 ```
 
+초등학생 친화 자산 자동 생성(주석/설명문서/음성):
+
+```bash
+python3 scripts/generate_kids_assets.py --mode all
+```
+
+## 초등학생 친화 구성
+
+- 모든 Python 소스(챕터 + 백엔드)에 줄 단위 설명 주석을 추가했습니다.
+- Python 소스가 있는 각 폴더마다 `python_explain.md`를 생성했습니다.
+- 각 `python_explain.md` 내용을 한국 여성 음성(mp3)으로 생성했습니다.
+  - 파일명: `python_explain_ko_female.mp3`
+  - 예시: `chapters/chapter31/python_explain_ko_female.mp3`
+
 ## 학습 흐름
 
 1. chapter01~04: 데이터/수학 기초
@@ -41,3 +57,7 @@ uvicorn backend.app.main:app --reload --host 0.0.0.0 --port 8888
 - 문서: `DOCS/chapter01_99_restructured_ko.md`
 - `chapter31~99`는 초급자 실습용 스타터 코드(`run()` + phase별 demo)가 생성되어 있어 바로 확장 가능합니다.
 - 진행 상태: `chapter31~99` 주제별 전용 실습 코드 확장 완료
+
+## 문서 인덱스
+
+- 전체 문서 정리: `DOCS/README.md`
