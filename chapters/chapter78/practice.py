@@ -40,7 +40,7 @@ def run() -> dict:
     # 설명: 값을 저장하거나 바꿔요.
     inverted = 255 - image
     # 설명: 값을 저장하거나 바꿔요.
-    brighter = np.clip(image + 40, 0, 255).astype(np.uint8)
+    brighter = np.clip(image.astype(np.int32) + 40, 0, 255).astype(np.uint8)
 
     # 설명: 함수 결과를 돌려줘요.
     return {
