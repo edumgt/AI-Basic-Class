@@ -1,59 +1,21 @@
-version: "3.9"
-
-# ============================================================
-# AI/ML Basic Class — 전체 스택
-# 사전 조건: Docker Desktop 또는 Docker Engine + Compose Plugin
-# 참고: https://github.com/edumgt/docker-class
-# ============================================================
-
+version: '3.9'
 services:
-
-  # ── 학습 앱 (FastAPI) ──────────────────────────────────────
   app:
     build: .
     container_name: ai-lab-app
     ports:
-      - "8088:8088"
+    - 8088:8088
     environment:
-      - OLLAMA_URL=http://ollama:11434
-      - OLLAMA_MODEL=llama3.2
-      - QDRANT_URL=http://host.docker.internal:6333
-    depends_on:
-      - ollama
+    - OLLAMA_URL=http://ollama:11434
+    - OLLAMA_MODEL=llama3.2
+    - QDRANT_URL=http://qdrant:6333
     extra_hosts:
-      - "host.docker.internal:host-gateway"
+    - host.docker.internal:host-gateway
     volumes:
-      - .:/app          # 개발 중 코드 변경 즉시 반영
+    - .:/app
     restart: unless-stopped
     networks:
-      - ai-net
-
-  # ── Ollama (로컬 LLM) ──────────────────────────────────────
-  ollama:
-    image: ollama/ollama:latest
-    container_name: ai-lab-ollama
-    ports:
-      - "${OLLAMA_HOST_PORT:-11435}:11434"
-    volumes:
-      - ollama_data:/root/.ollama
-    restart: unless-stopped
-    networks:
-      - ai-net
-    # GPU 사용 시 아래 주석 해제 (NVIDIA 드라이버 필요)
-    # deploy:
-    #   resources:
-    #     reservations:
-    #       devices:
-    #         - driver: nvidia
-    #           count: 1
-    #           capabilities: [gpu]
-
-  # ── Qdrant: 기존 investment_qdrant 컨테이너(포트 6333)를 사용
-  # host.docker.internal:6333 으로 접근
-
-volumes:
-  ollama_data:
-
+    - shared-net
 networks:
-  ai-net:
-    driver: bridge
+  shared-net:
+    external: true
