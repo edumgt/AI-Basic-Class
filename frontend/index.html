@@ -1,308 +1,492 @@
 <!doctype html>
 <html lang="ko">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Python AI Basic Lab — 퀀트 ML/DL 실습 허브</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet"
-      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
-    <style>
-      body {
-        font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        background:
-          radial-gradient(circle at top left, rgba(14, 165, 233, 0.14), transparent 30%),
-          radial-gradient(circle at top right, rgba(16, 185, 129, 0.12), transparent 28%),
-          linear-gradient(180deg, #f8fbff 0%, #eef5ff 100%);
-        color: #0f172a;
-      }
-      .panel {
-        background: rgba(255, 255, 255, 0.86);
-        border: 1px solid #dbe4f0;
-        box-shadow: 0 20px 48px rgba(148, 163, 184, 0.12);
-      }
-      .menu-card {
-        background: rgba(255, 255, 255, 0.88);
-        border: 1px solid #dbe4f0;
-        transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
-      }
-      .menu-card:hover {
-        transform: translateY(-2px);
-        border-color: #93c5fd;
-        box-shadow: 0 18px 36px rgba(96, 165, 250, 0.14);
-      }
-    </style>
-  </head>
-  <body class="min-h-screen">
-    <main class="max-w-[1920px] mx-auto px-6 py-10 md:py-14 space-y-8">
-      <section class="panel rounded-[28px] px-6 py-8 md:px-10 md:py-10">
-        <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-          <div class="max-w-3xl">
-            <p class="text-[11px] uppercase tracking-[0.28em] text-sky-600 font-semibold">Python AI Basic Lab · Quant ML/DL Playground</p>
-            <h1 class="text-3xl md:text-5xl font-bold tracking-tight text-slate-900 mt-3">
-              실데이터셋으로 ML · DL 주식 예측을
-              <span class="text-sky-700">단순한 흐름</span>으로 체험하는 웹앱
-            </h1>
-            <p class="text-sm md:text-base text-slate-600 leading-relaxed mt-4">
-              FastAPI 백엔드가 OHLCV·거시경제·DART 공시 데이터를 처리하고, 로지스틱 회귀부터 Transformer까지
-              여러 모델 결과를 브라우저에서 바로 비교합니다. Ollama AI가 숫자 결과를 쉬운 말로 해설해 줍니다.
-            </p>
-          </div>
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-center text-xs w-full lg:w-auto">
-            <div class="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3">
-              <div class="text-lg font-bold text-sky-700">4+</div>
-              <div class="text-slate-500 mt-1">비교 모델</div>
-            </div>
-            <div class="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3">
-            <div class="text-lg font-bold text-emerald-700">9+</div>
-            <div class="text-slate-500 mt-1">실데이터셋</div>
-            </div>
-            <div class="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3">
-              <div class="text-lg font-bold text-violet-700">10</div>
-              <div class="text-slate-500 mt-1">실습 화면</div>
-            </div>
-            <div class="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3">
-              <div class="text-lg font-bold text-rose-700">DART</div>
-              <div class="text-slate-500 mt-1">공시 투자 흐름</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section class="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-        <a href="/lab" class="menu-card rounded-[24px] p-6 block">
-          <div class="flex items-center justify-between gap-3">
-            <span class="text-3xl">📈</span>
-            <span class="text-[11px] px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 font-semibold">추천 시작점</span>
-          </div>
-          <h2 class="text-xl font-bold text-slate-900 mt-5">실데이터 모델 비교</h2>
-          <p class="text-sm text-slate-600 leading-relaxed mt-3">
-            `stock_ohlcv.csv`, `traffic_timeseries.csv`, 직접 업로드 CSV를 같은 화면에서 비교합니다.
-            로지스틱 회귀, 랜덤 포레스트, 그래디언트 부스팅, 신경망 결과를 한 번에 볼 수 있습니다.
-          </p>
-          <p class="text-xs text-slate-500 mt-5">실데이터 선택 → 전체 모델 비교 → 추천 모델 상세 해석</p>
-        </a>
-
-        <a href="/datasets" class="menu-card rounded-[24px] p-6 block">
-          <div class="flex items-center justify-between gap-3">
-            <span class="text-3xl">🗂</span>
-            <span class="text-[11px] px-2.5 py-1 rounded-full bg-sky-50 border border-sky-200 text-sky-700 font-semibold">데이터 먼저 보기</span>
-          </div>
-          <h2 class="text-xl font-bold text-slate-900 mt-5">데이터셋 허브</h2>
-          <p class="text-sm text-slate-600 leading-relaxed mt-3">
-            `data/` 폴더의 CSV를 미리보기와 자동 차트로 확인합니다.
-            어떤 데이터가 시계열 예측용인지, 어떤 데이터가 분류나 군집화용인지 빠르게 구분할 수 있습니다.
-          </p>
-          <p class="text-xs text-slate-500 mt-5">CSV 구조 파악 → 실험 화면으로 이동</p>
-        </a>
-
-        <a href="/predict" class="menu-card rounded-[24px] p-6 block">
-          <div class="flex items-center justify-between gap-3">
-            <span class="text-3xl">🎯</span>
-            <span class="text-[11px] px-2.5 py-1 rounded-full bg-violet-50 border border-violet-200 text-violet-700 font-semibold">업로드 중심</span>
-          </div>
-          <h2 class="text-xl font-bold text-slate-900 mt-5">파일 업로드형 예측</h2>
-          <p class="text-sm text-slate-600 leading-relaxed mt-3">
-            여러 회사가 들어 있는 CSV를 올려 타겟 예측을 수행합니다.
-            모델별 특성 중요도와 회사별 결과를 보고 싶을 때 사용하는 보조 화면입니다.
-          </p>
-          <p class="text-xs text-slate-500 mt-5">기업별 CSV 예측과 특성 비교</p>
-        </a>
-
-        <a href="/advisor" class="menu-card rounded-[24px] p-6 block">
-          <div class="flex items-center justify-between gap-3">
-            <span class="text-3xl">🧭</span>
-            <span class="text-[11px] px-2.5 py-1 rounded-full bg-rose-50 border border-rose-200 text-rose-700 font-semibold">뉴스 해석</span>
-          </div>
-          <h2 class="text-xl font-bold text-slate-900 mt-5">이벤트 투자 컨설팅</h2>
-          <p class="text-sm text-slate-600 leading-relaxed mt-3">
-            전쟁, 가뭄, 물가, 금리, 규제 같은 뉴스 문장을 넣으면 시장 체온, 수혜/피해 업종,
-            관심 종목 메모를 컨설팅처럼 정리해 줍니다.
-          </p>
-          <p class="text-xs text-slate-500 mt-5">뉴스 입력 → 업종 영향도 → 체크리스트 확인</p>
-        </a>
-
-        <a href="/dart" class="menu-card rounded-[24px] p-6 block">
-          <div class="flex items-center justify-between gap-3">
-            <span class="text-3xl">📑</span>
-            <span class="text-[11px] px-2.5 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-700 font-semibold">공시 기반</span>
-          </div>
-          <h2 class="text-xl font-bold text-slate-900 mt-5">DART 공시 투자 파이프라인</h2>
-          <p class="text-sm text-slate-600 leading-relaxed mt-3">
-            DART 재무제표, 최근 공시, 가격 팩터를 묶어 회사 체력과 투자 관찰 점수를 보여줍니다.
-            숫자만 보지 않고 왜 그런 판단이 나왔는지 쉬운 말로 읽을 수 있습니다.
-          </p>
-          <p class="text-xs text-slate-500 mt-5">공시 데이터셋 생성 → 회사 선택 → 투자 해석 확인</p>
-        </a>
-
-        <a href="/macro" class="menu-card rounded-[24px] p-6 block">
-          <div class="flex items-center justify-between gap-3">
-            <span class="text-3xl">🌍</span>
-            <span class="text-[11px] px-2.5 py-1 rounded-full bg-cyan-50 border border-cyan-200 text-cyan-700 font-semibold">거시 확장</span>
-          </div>
-          <h2 class="text-xl font-bold text-slate-900 mt-5">거시경제 투자 파이프라인</h2>
-          <p class="text-sm text-slate-600 leading-relaxed mt-3">
-            FRED와 World Bank에서 모은 금리, 물가, 실업률, VIX 같은 외부 데이터를 DART 재무와 합쳐
-            ML/DL 모델로 다음 해 실적 개선을 분류합니다.
-          </p>
-          <p class="text-xs text-slate-500 mt-5">외부 API 추천 → 특징 생성 → ML/DL 비교</p>
-        </a>
-
-        <a href="/loan-invest" class="menu-card rounded-[24px] p-6 block">
-          <div class="flex items-center justify-between gap-3">
-            <span class="text-3xl">💳</span>
-            <span class="text-[11px] px-2.5 py-1 rounded-full bg-orange-50 border border-orange-200 text-orange-700 font-semibold">대출 투자 분석</span>
-          </div>
-          <h2 class="text-xl font-bold text-slate-900 mt-5">마이너스 통장 투자 분석</h2>
-          <p class="text-sm text-slate-600 leading-relaxed mt-3">
-            2,000만 원 마이너스 통장 자금을 주식 투자할 때 이익인지 시뮬레이션합니다.
-            금리·세금·변동성·심리적 손절선 등 다변수 분석과 몬테카를로 시뮬레이션으로 성공 확률을 추정합니다.
-          </p>
-          <p class="text-xs text-slate-500 mt-5">변수 입력 → 몬테카를로 시뮬레이션 → 투자 판정</p>
-        </a>
-
-        <a href="/fine-tune" class="menu-card rounded-[24px] p-6 block">
-          <div class="flex items-center justify-between gap-3">
-            <span class="text-3xl">🤖</span>
-            <span class="text-[11px] px-2.5 py-1 rounded-full bg-violet-50 border border-violet-200 text-violet-700 font-semibold">LLM 파인튜닝</span>
-          </div>
-          <h2 class="text-xl font-bold text-slate-900 mt-5">LLM 파인튜닝 실험실</h2>
-          <p class="text-sm text-slate-600 leading-relaxed mt-3">
-            LoRA·QLoRA·Instruction Tuning 기법을 소개하고, 파라미터 압축 효과와
-            도메인 특화 파인튜닝 전후 성능 차이를 직접 수치로 확인합니다.
-          </p>
-          <p class="text-xs text-slate-500 mt-5">LoRA 시뮬레이터 → Instruction Tuning → 실전 로드맵</p>
-        </a>
-
-        <a href="/qdrant" class="menu-card rounded-[24px] p-6 block">
-          <div class="flex items-center justify-between gap-3">
-            <span class="text-3xl">🧬</span>
-            <span class="text-[11px] px-2.5 py-1 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 font-semibold">벡터 DB 탐색</span>
-          </div>
-          <h2 class="text-xl font-bold text-slate-900 mt-5">Qdrant 벡터 뷰어</h2>
-          <p class="text-sm text-slate-600 leading-relaxed mt-3">
-            Docker로 띄운 Qdrant의 컬렉션과 포인트 벡터를 웹에서 직접 확인합니다.
-            포인트 개수, 벡터 차원, payload를 빠르게 점검할 수 있습니다.
-          </p>
-          <p class="text-xs text-slate-500 mt-5">컬렉션 조회 → 포인트 샘플 확인 → 벡터 구조 점검</p>
-        </a>
-
-        <a href="/fin-ts" class="menu-card rounded-[24px] p-6 block">
-          <div class="flex items-center justify-between gap-3">
-            <span class="text-3xl">📉</span>
-            <span class="text-[11px] px-2.5 py-1 rounded-full bg-violet-50 border border-violet-200 text-violet-700 font-semibold">ApexCharts 시각화</span>
-          </div>
-          <h2 class="text-xl font-bold text-slate-900 mt-5">금융 시계열 시각화</h2>
-          <p class="text-sm text-slate-600 leading-relaxed mt-3">
-            주가 OHLCV 캔들스틱, 글로벌 지수 비교, 환율, 금리, 파생상품(VIX·선물·옵션)
-            6종 시계열 데이터를 ApexCharts로 인터랙티브하게 탐색합니다.
-          </p>
-          <p class="text-xs text-slate-500 mt-5">탭 전환 → 기간 선택 → 차트 드릴다운</p>
-        </a>
-      </section>
-
-      <section class="panel rounded-[28px] px-6 py-6 md:px-8">
-        <div class="grid gap-4 md:grid-cols-3">
-          <div>
-            <h3 class="text-sm font-bold text-slate-900">추천 사용 순서</h3>
-            <p class="text-sm text-slate-600 leading-relaxed mt-2">
-              처음에는 <code class="text-sky-700">/lab</code>에서 내장 실데이터셋을 불러 전체 모델 비교를 실행하는 흐름이 가장 이해하기 쉽습니다.
-              이후 <code class="text-sky-700">/dart</code>·<code class="text-sky-700">/macro</code>로 확장하세요.
-            </p>
-          </div>
-          <div>
-            <h3 class="text-sm font-bold text-slate-900">이 앱이 하는 일</h3>
-            <p class="text-sm text-slate-600 leading-relaxed mt-2">
-              FastAPI 백엔드가 ML/DL 숫자 결과를 만들고, Ollama가 그 결과를 자연어로 해설합니다.
-              DART·FRED·World Bank 데이터까지 한 화면에서 투자 관점으로 읽을 수 있습니다.
-            </p>
-          </div>
-          <div>
-            <h3 class="text-sm font-bold text-slate-900">읽어야 할 지표</h3>
-            <p class="text-sm text-slate-600 leading-relaxed mt-2">
-              AUC는 분류력, 전략 수익률은 투자 적용 감각, 중요 특성은 모델이 어떤 신호를 봤는지 알려줍니다.
-              ICIR·Sharpe Ratio로 신호 일관성을 추가 확인하세요.
-            </p>
-          </div>
-        </div>
-      </section>
-    </main>
-  
-  <!-- ── 우측 오프캔버스 내비게이션 ── -->
-  <button id="nav-toggle" onclick="openMenu()"
-          style="position:fixed;top:1rem;right:1rem;z-index:9000;background:rgba(255,255,255,0.95);border:1px solid #dbe4f0;box-shadow:0 4px 16px rgba(148,163,184,0.20);border-radius:9999px;padding:0.55rem;cursor:pointer;transition:background 0.15s;"
-          aria-label="메뉴 열기">
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#334155" stroke-width="2">
-      <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
-    </svg>
-  </button>
-
-  <div id="nav-backdrop" onclick="closeMenu()"
-       style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.38);z-index:8500;"></div>
-
-  <aside id="nav-drawer"
-         style="position:fixed;top:0;right:0;height:100%;width:17rem;background:#fff;z-index:9001;
-                box-shadow:-8px 0 40px rgba(148,163,184,0.22);display:flex;flex-direction:column;
-                transform:translateX(100%);transition:transform 0.3s ease;">
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:1rem 1.25rem;border-bottom:1px solid #f1f5f9;">
-      <span style="font-weight:700;font-size:0.875rem;color:#0f172a;">전체 메뉴</span>
-      <button onclick="closeMenu()" style="background:none;border:none;cursor:pointer;padding:0.25rem;border-radius:0.5rem;color:#64748b;" aria-label="닫기">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M6 18L18 6M6 6l12 12"/></svg>
-      </button>
-    </div>
-    <nav style="flex:1;overflow-y:auto;padding:0.75rem;">
-      <a href="/"            class="oc-nav-item">🏠 홈 (메인)</a>
-      <a href="/lab"         class="oc-nav-item">📈 실데이터 모델 비교</a>
-      <a href="/datasets"    class="oc-nav-item">🗂 데이터셋 허브</a>
-      <a href="/predict"     class="oc-nav-item">🎯 파일 업로드형 예측</a>
-      <a href="/advisor"     class="oc-nav-item">🧭 이벤트 투자 컨설팅</a>
-      <a href="/dart"        class="oc-nav-item">📑 DART 공시 투자 파이프라인</a>
-      <a href="/macro"       class="oc-nav-item">🌍 거시경제 투자 파이프라인</a>
-      <a href="/hotel-stock" class="oc-nav-item">🏨 호텔·주가 멀티모델</a>
-      <a href="/loan-invest" class="oc-nav-item">💳 마이너스 통장 투자 분석</a>
-      <a href="/fine-tune"   class="oc-nav-item">🤖 LLM 파인튜닝 실험실</a>
-      <a href="/qdrant"      class="oc-nav-item">🧬 Qdrant 벡터 뷰어</a>
-      <a href="/fin-ts"     class="oc-nav-item">📉 금융 시계열 시각화</a>
-    </nav>
-    <div style="padding:1rem 1.25rem;border-top:1px solid #f1f5f9;text-align:center;">
-      <p style="font-size:0.75rem;font-weight:600;color:#475569;">에듀엠지티</p>
-      <p style="font-size:0.7rem;color:#94a3b8;margin-top:0.2rem;">© 2025 EduMGT. All rights reserved.</p>
-    </div>
-  </aside>
-
-  <footer style="background:#fff;border-top:1px solid #f1f5f9;text-align:center;padding:1rem 1.5rem;">
-    <p style="font-size:0.75rem;font-weight:600;color:#334155;">에듀엠지티 (EduMGT)</p>
-    <p style="font-size:0.7rem;color:#94a3b8;margin-top:0.25rem;">
-      © 2025 에듀엠지티. All rights reserved.&nbsp;·&nbsp;
-      본 웹앱은 교육 목적으로 제작되었으며 MIT License가 적용됩니다.
-    </p>
-  </footer>
-
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quant Lab — ML/DL 주식 예측 플랫폼</title>
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <style>
-    .oc-nav-item {
-      display: flex; align-items: center; gap: 0.5rem;
-      padding: 0.55rem 0.75rem; border-radius: 0.75rem;
-      font-size: 0.8125rem; font-weight: 500; color: #334155;
-      text-decoration: none; transition: background 0.15s;
-      margin-bottom: 0.125rem;
+    /* ── Reset & Variables ──────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:           #0A0A0A;
+      --bg-card:      #111111;
+      --bg-card-hov:  #181818;
+      --bg-nav:       #0D0D0D;
+      --border:       #222222;
+      --border-hov:   #FFB800;
+      --yellow:       #FFB800;
+      --yellow-bg:    rgba(255,184,0,0.10);
+      --yellow-bdr:   rgba(255,184,0,0.28);
+      --text-1:       #EBEBEB;
+      --text-2:       #888888;
+      --text-3:       #484848;
+      --nav-h:        52px;
     }
-    .oc-nav-item:hover { background: #f0f9ff; }
+
+    /* ── Base ───────────────────────────────────────────────── */
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 17px;
+      line-height: 1.65;
+      background: var(--bg);
+      color: var(--text-1);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    a { text-decoration: none; color: inherit; }
+
+    /* ── Top Navigation ─────────────────────────────────────── */
+    .top-nav {
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      height: var(--nav-h);
+      background: var(--bg-nav);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 1.75rem;
+    }
+
+    .nav-brand {
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.20em;
+      text-transform: uppercase;
+      color: var(--yellow);
+      flex-shrink: 0;
+      margin-right: 1.75rem;
+    }
+
+    .nav-sep {
+      width: 1px;
+      height: 16px;
+      background: var(--border);
+      margin-right: 1.75rem;
+      flex-shrink: 0;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      flex: 1;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .nav-links::-webkit-scrollbar { display: none; }
+
+    .nav-link {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-2);
+      padding: 0.28rem 0.75rem;
+      border-radius: 4px;
+      white-space: nowrap;
+      transition: color 0.14s, background 0.14s;
+    }
+    .nav-link:hover  { color: var(--text-1); background: rgba(255,255,255,0.05); }
+    .nav-link.active { color: var(--yellow); }
+
+    /* ── Page wrapper ───────────────────────────────────────── */
+    .page {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 2rem 1.75rem 3.5rem;
+    }
+
+    /* ── Section label ──────────────────────────────────────── */
+    .section-eyebrow {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      margin-bottom: 0.35rem;
+    }
+    .section-sub {
+      font-size: 15px;
+      color: var(--text-2);
+      margin-bottom: 1.75rem;
+    }
+
+    /* ── Card grid ──────────────────────────────────────────── */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    @media (max-width: 980px)  { .card-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 560px)  { .card-grid { grid-template-columns: 1fr; } }
+
+    /* ── Single card ────────────────────────────────────────── */
+    .lab-card {
+      background: var(--bg-card);
+      padding: 1.6rem 1.5rem 1.4rem;
+      display: block;
+      position: relative;
+      transition: background 0.16s;
+    }
+    .lab-card:hover { background: var(--bg-card-hov); }
+
+    /* 좌측 하단 → 우측 하단으로 펼쳐지는 노란 하이라이트 선 */
+    .lab-card::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      height: 2px;
+      background: var(--yellow);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.22s ease;
+    }
+    .lab-card:hover::after { transform: scaleX(1); }
+
+    .card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+
+    .card-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 7px;
+      background: var(--yellow-bg);
+      border: 1px solid var(--yellow-bdr);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--yellow);
+      font-size: 15px;
+      flex-shrink: 0;
+    }
+
+    .card-badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 3px;
+      border: 1px solid;
+      white-space: nowrap;
+    }
+    .badge-yellow { color: var(--yellow);  border-color: var(--yellow-bdr); background: var(--yellow-bg); }
+    .badge-muted  { color: var(--text-3);  border-color: var(--border);     background: transparent; }
+
+    .card-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-1);
+      margin-bottom: 0.45rem;
+      letter-spacing: -0.01em;
+    }
+
+    .card-desc {
+      font-size: 14px;
+      color: var(--text-2);
+      line-height: 1.72;
+    }
+
+    .card-flow {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.3rem;
+      font-size: 12px;
+      color: var(--text-3);
+      margin-top: 1rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid var(--border);
+    }
+    .card-flow i { font-size: 8px; color: var(--yellow); }
+
+    /* ── Info strip ─────────────────────────────────────────── */
+    .info-strip {
+      margin-top: 1px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    @media (max-width: 760px) { .info-strip { grid-template-columns: 1fr; } }
+
+    .info-cell {
+      background: var(--bg-card);
+      padding: 1.5rem;
+    }
+
+    .info-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--yellow);
+      margin-bottom: 0.55rem;
+    }
+
+    .info-text {
+      font-size: 14px;
+      color: var(--text-2);
+      line-height: 1.72;
+    }
+    .info-text code {
+      font-family: "SF Mono", "Consolas", monospace;
+      font-size: 12px;
+      color: var(--yellow);
+      background: var(--yellow-bg);
+      padding: 1px 5px;
+      border-radius: 3px;
+    }
+
+    /* ── Footer ─────────────────────────────────────────────── */
+    .site-footer {
+      background: var(--bg-nav);
+      border-top: 1px solid var(--border);
+      text-align: center;
+      padding: 1.1rem;
+      font-size: 12px;
+      color: var(--text-3);
+    }
   </style>
-  <script>
-    (function() {
-      function openMenu() {
-        document.getElementById('nav-drawer').style.transform = 'translateX(0)';
-        document.getElementById('nav-backdrop').style.display = 'block';
-        document.body.style.overflow = 'hidden';
-      }
-      function closeMenu() {
-        document.getElementById('nav-drawer').style.transform = 'translateX(100%)';
-        document.getElementById('nav-backdrop').style.display = 'none';
-        document.body.style.overflow = '';
-      }
-      window.openMenu = openMenu;
-      window.closeMenu = closeMenu;
-    })();
-  </script>
+</head>
+<body>
+
+<!-- ── Top Navigation ──────────────────────────────────────── -->
+<nav class="top-nav">
+  <span class="nav-brand">Quant Lab</span>
+  <span class="nav-sep"></span>
+  <div class="nav-links">
+    <a href="/"            class="nav-link active">홈</a>
+    <a href="/lab"         class="nav-link">모델 비교</a>
+    <a href="/datasets"    class="nav-link">데이터셋</a>
+    <a href="/predict"     class="nav-link">파일 예측</a>
+    <a href="/advisor"     class="nav-link">투자 컨설팅</a>
+    <a href="/dart"        class="nav-link">DART 공시</a>
+    <a href="/macro"       class="nav-link">거시경제</a>
+    <a href="/hotel-stock" class="nav-link">호텔·주가</a>
+    <a href="/loan-invest" class="nav-link">대출 분석</a>
+    <a href="/fine-tune"   class="nav-link">LLM 튜닝</a>
+    <a href="/qdrant"      class="nav-link">벡터 DB</a>
+    <a href="/fin-ts"      class="nav-link">시계열 시각화</a>
+  </div>
+</nav>
+
+<!-- ── Main ────────────────────────────────────────────────── -->
+<main class="page">
+
+  <p class="section-eyebrow">Quant ML/DL Playground</p>
+  <p class="section-sub">실데이터 기반 ML · DL 주식 예측 실습 플랫폼</p>
+
+  <!-- Card Grid -->
+  <div class="card-grid">
+
+    <!-- 1. 실데이터 모델 비교 -->
+    <a href="/lab" class="lab-card">
+      <div class="card-top">
+        <div class="card-icon"><i class="fa-solid fa-chart-line"></i></div>
+        <span class="card-badge badge-yellow">추천 시작점</span>
+      </div>
+      <h2 class="card-title">실데이터 모델 비교</h2>
+      <p class="card-desc">실제 OHLCV·CSV를 올려 로지스틱 회귀, 랜덤 포레스트, 그래디언트 부스팅, 신경망 결과를 한 번에 비교합니다.</p>
+      <div class="card-flow">
+        <span>실데이터 선택</span>
+        <i class="fa-solid fa-chevron-right"></i>
+        <span>전체 모델 비교</span>
+        <i class="fa-solid fa-chevron-right"></i>
+        <span>추천 모델 상세 해석</span>
+      </div>
+    </a>
+
+    <!-- 2. 데이터셋 허브 -->
+    <a href="/datasets" class="lab-card">
+      <div class="card-top">
+        <div class="card-icon"><i class="fa-solid fa-database"></i></div>
+        <span class="card-badge badge-muted">데이터 먼저 보기</span>
+      </div>
+      <h2 class="card-title">데이터셋 허브</h2>
+      <p class="card-desc"><code style="font-family:monospace;font-size:13px;color:var(--yellow);background:var(--yellow-bg);padding:1px 5px;border-radius:3px;">data/</code> 폴더 CSV를 미리보기와 자동 차트로 확인합니다. 시계열·분류·군집화 용도를 빠르게 구분할 수 있습니다.</p>
+      <div class="card-flow">
+        <span>CSV 구조 파악</span>
+        <i class="fa-solid fa-chevron-right"></i>
+        <span>실험 화면으로 이동</span>
+      </div>
+    </a>
+
+    <!-- 3. 파일 업로드형 예측 -->
+    <a href="/predict" class="lab-card">
+      <div class="card-top">
+        <div class="card-icon"><i class="fa-solid fa-file-arrow-up"></i></div>
+        <span class="card-badge badge-muted">업로드 중심</span>
+      </div>
+      <h2 class="card-title">파일 업로드형 예측</h2>
+      <p class="card-desc">여러 회사가 들어 있는 CSV를 올려 타겟 예측을 수행합니다. 모델별 특성 중요도와 회사별 결과를 바로 비교합니다.</p>
+      <div class="card-flow">
+        <span>기업별 CSV 업로드</span>
+        <i class="fa-solid fa-chevron-right"></i>
+        <span>특성 중요도 비교</span>
+      </div>
+    </a>
+
+    <!-- 4. 이벤트 투자 컨설팅 -->
+    <a href="/advisor" class="lab-card">
+      <div class="card-top">
+        <div class="card-icon"><i class="fa-solid fa-compass"></i></div>
+        <span class="card-badge badge-muted">뉴스 해석</span>
+      </div>
+      <h2 class="card-title">이벤트 투자 컨설팅</h2>
+      <p class="card-desc">전쟁, 물가, 금리, 규제 같은 뉴스 문장을 넣으면 시장 체온, 수혜/피해 업종, 관심 종목 메모를 정리해 줍니다.</p>
+      <div class="card-flow">
+        <span>뉴스 입력</span>
+        <i class="fa-solid fa-chevron-right"></i>
+        <span>업종 영향도</span>
+        <i class="fa-solid fa-chevron-right"></i>
+        <span>체크리스트</span>
+      </div>
+    </a>
+
+    <!-- 5. DART 공시 -->
+    <a href="/dart" class="lab-card">
+      <div class="card-top">
+        <div class="card-icon"><i class="fa-solid fa-file-contract"></i></div>
+        <span class="card-badge badge-muted">공시 기반</span>
+      </div>
+      <h2 class="card-title">DART 공시 투자 파이프라인</h2>
+      <p class="card-desc">재무제표, 최근 공시, 가격 팩터를 묶어 회사 체력과 투자 관찰 점수를 보여줍니다. 왜 그런 판단이 나왔는지 쉬운 말로 읽을 수 있습니다.</p>
+      <div class="card-flow">
+        <span>데이터셋 생성</span>
+        <i class="fa-solid fa-chevron-right"></i>
+        <span>회사 선택</span>
+        <i class="fa-solid fa-chevron-right"></i>
+        <span>투자 해석</span>
+      </div>
+    </a>
+
+    <!-- 6. 거시경제 -->
+    <a href="/macro" class="lab-card">
+      <div class="card-top">
+        <div class="card-icon"><i class="fa-solid fa-earth-americas"></i></div>
+        <span class="card-badge badge-muted">거시 확장</span>
+      </div>
+      <h2 class="card-title">거시경제 투자 파이프라인</h2>
+      <p class="card-desc">FRED·World Bank에서 모은 금리, 물가, 실업률, VIX를 DART 재무와 합쳐 ML/DL 모델로 다음 해 실적 개선을 분류합니다.</p>
+      <div class="card-flow">
+        <span>외부 API 추출</span>
+        <i class="fa-solid fa-chevron-right"></i>
+        <span>특징 생성</span>
+        <i class="fa-solid fa-chevron-right"></i>
+        <span>ML/DL 비교</span>
+      </div>
+    </a>
+
+    <!-- 7. 대출 투자 분석 -->
+    <a href="/loan-invest" class="lab-card">
+      <div class="card-top">
+        <div class="card-icon"><i class="fa-solid fa-credit-card"></i></div>
+        <span class="card-badge badge-muted">대출 투자 분석</span>
+      </div>
+      <h2 class="card-title">마이너스 통장 투자 분석</h2>
+      <p class="card-desc">마이너스 통장 자금을 주식에 투자할 때 이익인지 시뮬레이션합니다. 금리·세금·변동성을 다변수로 분석하고 몬테카를로 성공 확률을 추정합니다.</p>
+      <div class="card-flow">
+        <span>변수 입력</span>
+        <i class="fa-solid fa-chevron-right"></i>
+        <span>몬테카를로 시뮬레이션</span>
+        <i class="fa-solid fa-chevron-right"></i>
+        <span>투자 판정</span>
+      </div>
+    </a>
+
+    <!-- 8. LLM 파인튜닝 -->
+    <a href="/fine-tune" class="lab-card">
+      <div class="card-top">
+        <div class="card-icon"><i class="fa-solid fa-robot"></i></div>
+        <span class="card-badge badge-muted">LLM 파인튜닝</span>
+      </div>
+      <h2 class="card-title">LLM 파인튜닝 실험실</h2>
+      <p class="card-desc">LoRA·QLoRA·Instruction Tuning 기법을 소개하고, 파라미터 압축 효과와 도메인 특화 파인튜닝 전후 성능 차이를 수치로 확인합니다.</p>
+      <div class="card-flow">
+        <span>LoRA 시뮬레이터</span>
+        <i class="fa-solid fa-chevron-right"></i>
+        <span>Instruction Tuning</span>
+        <i class="fa-solid fa-chevron-right"></i>
+        <span>실전 로드맵</span>
+      </div>
+    </a>
+
+    <!-- 9. Qdrant 벡터 뷰어 -->
+    <a href="/qdrant" class="lab-card">
+      <div class="card-top">
+        <div class="card-icon"><i class="fa-solid fa-network-wired"></i></div>
+        <span class="card-badge badge-muted">벡터 DB 탐색</span>
+      </div>
+      <h2 class="card-title">Qdrant 벡터 뷰어</h2>
+      <p class="card-desc">Docker로 띄운 Qdrant의 컬렉션과 포인트 벡터를 웹에서 직접 확인합니다. 포인트 개수, 벡터 차원, payload를 빠르게 점검합니다.</p>
+      <div class="card-flow">
+        <span>컬렉션 조회</span>
+        <i class="fa-solid fa-chevron-right"></i>
+        <span>포인트 확인</span>
+        <i class="fa-solid fa-chevron-right"></i>
+        <span>벡터 구조 점검</span>
+      </div>
+    </a>
+
+    <!-- 10. 금융 시계열 시각화 -->
+    <a href="/fin-ts" class="lab-card">
+      <div class="card-top">
+        <div class="card-icon"><i class="fa-solid fa-chart-area"></i></div>
+        <span class="card-badge badge-muted">ApexCharts 시각화</span>
+      </div>
+      <h2 class="card-title">금융 시계열 시각화</h2>
+      <p class="card-desc">주가 OHLCV 캔들스틱, 글로벌 지수, 환율, 금리, 파생상품(VIX·선물·옵션) 시계열 데이터를 인터랙티브하게 탐색합니다.</p>
+      <div class="card-flow">
+        <span>탭 전환</span>
+        <i class="fa-solid fa-chevron-right"></i>
+        <span>기간 선택</span>
+        <i class="fa-solid fa-chevron-right"></i>
+        <span>차트 드릴다운</span>
+      </div>
+    </a>
+
+  </div><!-- /card-grid -->
+
+  <!-- Info strip -->
+  <div class="info-strip" style="margin-top:2rem;">
+    <div class="info-cell">
+      <p class="info-label">추천 사용 순서</p>
+      <p class="info-text">처음에는 <code>/lab</code>에서 내장 실데이터셋으로 전체 모델 비교를 실행하는 흐름이 가장 이해하기 쉽습니다. 이후 <code>/dart</code>·<code>/macro</code>로 확장하세요.</p>
+    </div>
+    <div class="info-cell">
+      <p class="info-label">이 앱이 하는 일</p>
+      <p class="info-text">FastAPI 백엔드가 ML/DL 숫자 결과를 만들고, Ollama가 그 결과를 자연어로 해설합니다. DART·FRED·World Bank 데이터까지 한 화면에서 투자 관점으로 읽을 수 있습니다.</p>
+    </div>
+    <div class="info-cell">
+      <p class="info-label">읽어야 할 지표</p>
+      <p class="info-text">AUC는 분류력, 전략 수익률은 투자 적용 감각, 중요 특성은 모델이 어떤 신호를 봤는지 알려줍니다. ICIR·Sharpe Ratio로 신호 일관성을 추가 확인하세요.</p>
+    </div>
+  </div>
+
+</main>
+
+<!-- ── Footer ───────────────────────────────────────────────── -->
+<footer class="site-footer">
+  에듀엠지티 (EduMGT)&nbsp;·&nbsp;© 2025 All rights reserved.&nbsp;·&nbsp;교육 목적 MIT License
+</footer>
+
 </body>
 </html>

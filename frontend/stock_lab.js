@@ -185,6 +185,7 @@ let lastResult       = null;
 let portfolioChart   = null;
 let importanceChart  = null;
 let candleChart      = null;
+let volumeChart      = null;
 let labNNViz         = null;
 let conceptChart     = null;
 let conceptMode      = "supervised";
@@ -1458,9 +1459,65 @@ function displayResults(r) {
 // ── 차트 ──────────────────────────────────────────────────────────────
 function drawCandleChart(candles, result) {
   if (candleChart) { candleChart.destroy(); candleChart = null; }
+  if (volumeChart) { volumeChart.destroy(); volumeChart = null; }
   if (!candles.length) return;
 
-  const ctx = document.getElementById("candle-chart").getContext("2d");
+  // y축 너비를 두 차트 동일하게 고정 → plot area x 범위가 완전히 일치
+  const Y_AXIS_W = 72;
+
+  // 두 차트가 같은 플러그인 인스턴스를 공유 → syncing 플래그 공유
+  let syncing = false;
+
+  // 수직 크로스헤어 (노란 점선)
+  const crosshair = {
+    id: "crosshair",
+    afterDraw(chart) {
+      const active = chart.tooltip.getActiveElements();
+      if (!active.length) return;
+      const x = active[0].element.x;
+      const { top, bottom } = chart.chartArea;
+      const c = chart.ctx;
+      c.save();
+      c.beginPath();
+      c.moveTo(x, top);
+      c.lineTo(x, bottom);
+      c.lineWidth = 1;
+      c.strokeStyle = "rgba(251,191,36,0.55)";
+      c.setLineDash([4, 4]);
+      c.stroke();
+      c.restore();
+    },
+  };
+
+  // 툴팁·하이라이트 동기화
+  const syncTooltip = {
+    id: "syncTooltip",
+    afterEvent(chart, args) {
+      if (syncing) return;
+      const { type } = args.event;
+      if (type !== "mousemove" && type !== "mouseout") return;
+      const other = chart === candleChart ? volumeChart : candleChart;
+      if (!other) return;
+      syncing = true;
+      const active = chart.tooltip.getActiveElements();
+      if (active.length) {
+        const idx = active[0].index;
+        const meta = other.getDatasetMeta(0);
+        if (meta.data[idx]) {
+          other.tooltip.setActiveElements(
+            [{ datasetIndex: 0, index: idx }],
+            { x: meta.data[idx].x, y: meta.data[idx].y ?? 0 },
+          );
+          other.update("none");
+        }
+      } else {
+        other.tooltip.setActiveElements([], { x: 0, y: 0 });
+        other.update("none");
+      }
+      syncing = false;
+    },
+  };
+
   const candleData = candles.map(item => ({
     x: item.date,
     o: item.open,
@@ -1468,80 +1525,127 @@ function drawCandleChart(candles, result) {
     l: item.low,
     c: item.close,
   }));
-  const predictionPoint = {
-    x: result.predicted_next_date,
-    y: result.predicted_next_close,
-  };
 
-  candleChart = new Chart(ctx, {
-    data: {
-      datasets: [
-        {
-          type: "candlestick",
-          label: `${currentAssetLabel} OHLCV`,
-          data: candleData,
-          color: {
-            up: "#22c55e",
-            down: "#ef4444",
-            unchanged: "#94a3b8",
+  candleChart = new Chart(
+    document.getElementById("candle-chart").getContext("2d"),
+    {
+      data: {
+        datasets: [
+          {
+            type: "candlestick",
+            label: `${currentAssetLabel} OHLCV`,
+            data: candleData,
+            color:       { up: "#22c55e", down: "#ef4444", unchanged: "#94a3b8" },
+            borderColor: { up: "#22c55e", down: "#ef4444", unchanged: "#94a3b8" },
           },
-          borderColor: {
-            up: "#22c55e",
-            down: "#ef4444",
-            unchanged: "#94a3b8",
+          {
+            type: "scatter",
+            label: "내일 예상 종가",
+            data: [{ x: result.predicted_next_date, y: result.predicted_next_close }],
+            parsing: false,
+            backgroundColor: "#facc15",
+            borderColor: "#fde047",
+            pointRadius: 8,
+            pointHoverRadius: 10,
+            pointBorderWidth: 3,
           },
-        },
-        {
-          type: "scatter",
-          label: "내일 예상 종가",
-          data: [predictionPoint],
-          parsing: false,
-          backgroundColor: "#facc15",
-          borderColor: "#fde047",
-          pointRadius: 8,
-          pointHoverRadius: 10,
-          pointBorderWidth: 3,
-        },
-      ],
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      interaction: { mode: "nearest", intersect: false },
-      plugins: {
-        legend: {
-          labels: { color: "#94a3b8", font: { size: 11 } },
-        },
-        tooltip: {
-          callbacks: {
-            label(context) {
-              if (context.dataset.type === "scatter") {
-                return ` 내일 예상 종가: ${Math.round(context.raw.y).toLocaleString()}원`;
-              }
-              const raw = context.raw;
-              return ` 시:${Math.round(raw.o).toLocaleString()} 고:${Math.round(raw.h).toLocaleString()} 저:${Math.round(raw.l).toLocaleString()} 종:${Math.round(raw.c).toLocaleString()}`;
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: "index", intersect: false },
+        plugins: {
+          legend: { labels: { color: "#94a3b8", font: { size: 11 } } },
+          tooltip: {
+            callbacks: {
+              label(ctx) {
+                if (ctx.dataset.type === "scatter") {
+                  return ` 내일 예상 종가: ${Math.round(ctx.raw.y).toLocaleString()}원`;
+                }
+                const r = ctx.raw;
+                return ` 시:${Math.round(r.o).toLocaleString()} 고:${Math.round(r.h).toLocaleString()} 저:${Math.round(r.l).toLocaleString()} 종:${Math.round(r.c).toLocaleString()}`;
+              },
             },
           },
         },
-      },
-      scales: {
-        x: {
-          type: "time",
-          time: { unit: "day", tooltipFormat: "yyyy-LL-dd" },
-          ticks: { color: "#64748b", font: { size: 10 }, maxTicksLimit: 8 },
-          grid: { color: "#1e293b" },
-        },
-        y: {
-          ticks: {
-            color: "#64748b",
-            font: { size: 10 },
-            callback: value => `${Math.round(value).toLocaleString()}`,
+        scales: {
+          x: {
+            type: "time",
+            time: { unit: "day", tooltipFormat: "yyyy-LL-dd" },
+            ticks: { display: false },           // x축 라벨은 거래량 차트에만 표시
+            grid:  { color: "#1e293b", drawTicks: false },
+            border: { display: false },
           },
-          grid: { color: "#1e293b" },
+          y: {
+            afterFit: scale => { scale.width = Y_AXIS_W; },
+            ticks: {
+              color: "#64748b",
+              font: { size: 10 },
+              callback: v => Math.round(v).toLocaleString(),
+            },
+            grid: { color: "#1e293b" },
+          },
         },
       },
+      plugins: [crosshair, syncTooltip],
     },
-  });
+  );
+
+  const volColors = candles.map(c => c.close >= c.open ? "rgba(34,197,94,0.65)" : "rgba(239,68,68,0.65)");
+
+  volumeChart = new Chart(
+    document.getElementById("volume-chart").getContext("2d"),
+    {
+      type: "bar",
+      data: {
+        labels: candles.map(c => c.date),
+        datasets: [{
+          data: candles.map(c => c.volume),
+          backgroundColor: volColors,
+          borderColor: candles.map(c => c.close >= c.open ? "#22c55e" : "#ef4444"),
+          borderWidth: 0,
+          borderRadius: 2,
+          categoryPercentage: 0.85,
+          barPercentage: 0.9,
+        }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: "index", intersect: false },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              title: items => items[0]?.label || "",
+              label: ctx => ` 거래량: ${Math.round(ctx.raw).toLocaleString()}주`,
+            },
+          },
+        },
+        scales: {
+          x: {
+            type: "time",
+            time: { unit: "day", tooltipFormat: "yyyy-LL-dd" },
+            ticks: { color: "#64748b", font: { size: 10 }, maxTicksLimit: 8 },
+            grid:  { color: "#1e293b" },
+            border: { color: "#1e293b" },
+          },
+          y: {
+            afterFit: scale => { scale.width = Y_AXIS_W; },
+            ticks: {
+              color: "#64748b",
+              font: { size: 9 },
+              callback: v => v >= 1e6 ? `${(v / 1e6).toFixed(1)}M` : v >= 1e3 ? `${(v / 1e3).toFixed(0)}K` : String(v),
+              maxTicksLimit: 3,
+            },
+            grid: { color: "#1e293b" },
+          },
+        },
+      },
+      plugins: [crosshair, syncTooltip],
+    },
+  );
 
   document.getElementById("next-date-badge").textContent = result.predicted_next_date;
   document.getElementById("candle-caption").textContent =
