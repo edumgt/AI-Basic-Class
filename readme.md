@@ -1,3 +1,5 @@
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+
 # AI/ML Basic Class — 퀀트를 위한 머신러닝과 딥러닝
 
 ## 실행 제반여건 한눈에 보기
@@ -690,10 +692,10 @@ BE는 다음 특성을 가진 데이터를 생성합니다.
 | URL | 설명 |
 |---|---|
 | http://localhost:8000 | AI/ML 문서 연계 실습 환경 |
-| http://localhost:8000/lab | 📊 주식 AI 실험실 (직접 데이터 입력 + AI 분석) |
-| http://localhost:8000/predict | 🎯 주가 예측 타겟팅 실험실 (CSV 업로드 기반 다중 종목 비교) |
-| http://localhost:8000/datasets | 🗂 내장 CSV 데이터셋 허브 (data/ 폴더 시각화 + 웹앱 연결) |
-| http://localhost:8000/hotel-stock | 🏨 멀티팩터 주식 AI 모델 비교실 (ML vs DL 비교) |
+| http://localhost:8000/lab | <i class="fa-solid fa-chart-bar"></i> 주식 AI 실험실 (직접 데이터 입력 + AI 분석) |
+| http://localhost:8000/predict | <i class="fa-solid fa-bullseye"></i> 주가 예측 타겟팅 실험실 (CSV 업로드 기반 다중 종목 비교) |
+| http://localhost:8000/datasets | <i class="fa-solid fa-folder-open"></i> 내장 CSV 데이터셋 허브 (data/ 폴더 시각화 + 웹앱 연결) |
+| http://localhost:8000/hotel-stock | <i class="fa-solid fa-hotel"></i> 멀티팩터 주식 AI 모델 비교실 (ML vs DL 비교) |
 | http://localhost:8000/api/health | API 상태 확인 |
 | http://localhost:8000/docs | FastAPI Swagger UI |
 | http://localhost:6333/dashboard | Qdrant 대시보드 |
@@ -907,7 +909,7 @@ python-ai-basic-lab/
 
 ---
 
-### 📂 stock_ohlcv.csv — 주가 OHLCV 시계열
+### <i class="fa-solid fa-folder-open"></i> stock_ohlcv.csv — 주가 OHLCV 시계열
 
 | 항목 | 내용 |
 |---|---|
@@ -926,11 +928,11 @@ python-ai-basic-lab/
 | 2,000건+ | 약 8년+ | 양호 | LSTM·Transformer 의미 있는 학습 |
 | 5,000건+ | 약 20년+ | 정교 | 다양한 시장 국면 포함, 모든 모델 최적 |
 
-> 💡 `yfinance`로 `005930.KS` 등 KRX 종목을 10~20년치 다운로드하면 정교한 학습이 가능합니다.
+> <i class="fa-solid fa-lightbulb"></i> `yfinance`로 `005930.KS` 등 KRX 종목을 10~20년치 다운로드하면 정교한 학습이 가능합니다.
 
 ---
 
-### 📂 traffic_timeseries.csv — 트래픽 시계열 예제
+### <i class="fa-solid fa-folder-open"></i> traffic_timeseries.csv — 트래픽 시계열 예제
 
 | 항목 | 내용 |
 |---|---|
@@ -948,11 +950,11 @@ python-ai-basic-lab/
 | 500건+ | 중급 시계열 예측 | 계절성·추세 학습 가능 |
 | 2,000건+ | 정교 | Transformer·PatchTST 효과 체감 |
 
-> 💡 실제 트래픽·판매량·에너지 소비량 데이터를 추가하면 범용 시계열 예측 실습이 가능합니다.
+> <i class="fa-solid fa-lightbulb"></i> 실제 트래픽·판매량·에너지 소비량 데이터를 추가하면 범용 시계열 예측 실습이 가능합니다.
 
 ---
 
-### 📂 dart_fundamentals.csv — DART 재무제표
+### <i class="fa-solid fa-folder-open"></i> dart_fundamentals.csv — DART 재무제표
 
 | 항목 | 내용 |
 |---|---|
@@ -971,11 +973,11 @@ python-ai-basic-lab/
 | 500건+ | 100종목 × 5년 | 신뢰 가능한 분류 |
 | 1,000건+ | 100종목 × 10년 | 정교한 재무 ML 모델 |
 
-> 💡 `OpenDartReader`로 KOSPI 200 종목의 10년치 재무제표를 수집하면 산업별 패턴 학습이 가능합니다.
+> <i class="fa-solid fa-lightbulb"></i> `OpenDartReader`로 KOSPI 200 종목의 10년치 재무제표를 수집하면 산업별 패턴 학습이 가능합니다.
 
 ---
 
-### 📂 dart_disclosures.csv — 공시 텍스트
+### <i class="fa-solid fa-folder-open"></i> dart_disclosures.csv — 공시 텍스트
 
 | 항목 | 내용 |
 |---|---|
@@ -996,7 +998,7 @@ python-ai-basic-lab/
 
 ---
 
-### 📂 external_invest_ml_dataset.csv — DART + 거시경제 결합 데이터
+### <i class="fa-solid fa-folder-open"></i> external_invest_ml_dataset.csv — DART + 거시경제 결합 데이터
 
 | 항목 | 내용 |
 |---|---|
@@ -1017,7 +1019,7 @@ python-ai-basic-lab/
 
 ---
 
-### 📂 external_macro_pipeline.csv — FRED·WorldBank 거시경제 연간 지표
+### <i class="fa-solid fa-folder-open"></i> external_macro_pipeline.csv — FRED·WorldBank 거시경제 연간 지표
 
 | 항목 | 내용 |
 |---|---|
@@ -1028,7 +1030,7 @@ python-ai-basic-lab/
 
 ---
 
-### 📂 macro_fred_signals.csv — FRED 월별 경제 시계열
+### <i class="fa-solid fa-folder-open"></i> macro_fred_signals.csv — FRED 월별 경제 시계열
 
 | 항목 | 내용 |
 |---|---|
@@ -1039,7 +1041,7 @@ python-ai-basic-lab/
 
 ---
 
-### 📂 stocks_features.csv / stock_universe.csv — 종목별 특성·유니버스
+### <i class="fa-solid fa-folder-open"></i> stocks_features.csv / stock_universe.csv — 종목별 특성·유니버스
 
 | 항목 | 내용 |
 |---|---|
@@ -1056,11 +1058,11 @@ python-ai-basic-lab/
 | 200건+ | 의미 있는 섹터 군집 | K=5~8 |
 | 500건+ | 정교 — 다양한 업종 포함 | K=10+ |
 
-> 💡 KOSPI 200 종목 전체를 넣으면 방어주·성장주·고변동주 군집이 명확하게 구분됩니다.
+> <i class="fa-solid fa-lightbulb"></i> KOSPI 200 종목 전체를 넣으면 방어주·성장주·고변동주 군집이 명확하게 구분됩니다.
 
 ---
 
-### 📂 dart_company_profiles.csv — 기업 기본 정보
+### <i class="fa-solid fa-folder-open"></i> dart_company_profiles.csv — 기업 기본 정보
 
 | 항목 | 내용 |
 |---|---|
@@ -1071,7 +1073,7 @@ python-ai-basic-lab/
 
 ---
 
-### 📂 experiment_log.csv — 실험 기록
+### <i class="fa-solid fa-folder-open"></i> experiment_log.csv — 실험 기록
 
 | 항목 | 내용 |
 |---|---|
