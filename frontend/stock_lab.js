@@ -1845,32 +1845,33 @@ async function sendChat(message) {
   }
 }
 
-// ── Ollama 상태 확인 ──────────────────────────────────────────────────
+// ── LLM 상태 확인 ─────────────────────────────────────────────────────
 async function checkOllama() {
   try {
-    const resp = await fetch("/api/ollama/status");
+    const resp = await fetch("/api/llm/status");
     const data = await resp.json();
-    updateOllamaBadge(data.status === "online", data.models || []);
+    updateOllamaBadge(data.status === "online", data.models || [], data.provider || "ollama");
   } catch {
     updateOllamaBadge(false, []);
   }
 }
 
-function updateOllamaBadge(online, models) {
+function updateOllamaBadge(online, models, provider = "ollama") {
   const dot   = document.getElementById("ollama-dot");
   const label = document.getElementById("ollama-label");
   const badge = document.getElementById("ollama-badge");
   const chatBadge = document.getElementById("ollama-chat-badge");
+  const providerLabel = provider === "openai" ? "OpenAI" : "Ollama";
 
   if (online) {
     dot.className   = "w-1.5 h-1.5 rounded-full bg-green-400 inline-block";
-    label.textContent = `Ollama 연결됨 ${models.length > 0 ? `(${models[0]})` : ""}`;
+    label.textContent = `${providerLabel} 연결됨 ${models.length > 0 ? `(${models[0]})` : ""}`;
     badge.className   = badge.className.replace("text-slate-400", "text-green-300").replace("border-slate-700", "border-green-800/50");
     chatBadge.textContent = "AI 설명 사용 가능";
     chatBadge.className = "text-xs px-2 py-0.5 rounded-full bg-green-900/30 text-green-400 border border-green-800/50";
   } else {
     dot.className   = "w-1.5 h-1.5 rounded-full bg-yellow-500 inline-block";
-    label.textContent = "Ollama 오프라인";
+    label.textContent = `${providerLabel} 사용 불가`;
     chatBadge.textContent = "규칙 기반 설명 모드";
     chatBadge.className = "text-xs px-2 py-0.5 rounded-full bg-yellow-900/30 text-yellow-500 border border-yellow-800/50";
   }

@@ -207,6 +207,41 @@ uvicorn backend.app.main:app --reload --host 0.0.0.0 --port 8000
 
 ---
 
+## LLM 공급자 선택: Ollama 또는 OpenAI API
+
+LLM은 예측값을 만드는 모델이 아니라 `/api/chat`, 학습 화면 안내, 뉴스 해설의 자연어 설명을 보강하는 역할입니다. 기본값은 기존과 동일한 **Ollama**이며, `LLM_PROVIDER` 환경 변수로 OpenAI Responses API로 바꿀 수 있습니다. 어느 공급자 호출이 실패해도 기존 규칙 기반 설명으로 fallback합니다.
+
+### Ollama 사용 (기본)
+
+```bash
+cp .env.example .env
+# .env에서 LLM_PROVIDER=ollama 유지
+docker compose up --build -d
+```
+
+### OpenAI API 사용
+
+`.env`에 API 키와 사용할 모델 ID를 넣습니다. `.env`는 `.gitignore`에 포함되어 있으므로 키를 Git에 커밋하지 마세요.
+
+```bash
+LLM_PROVIDER=openai
+OPENAI_API_KEY=sk-실제-API-키
+OPENAI_MODEL=사용할-모델-ID
+# 선택: OpenAI 호환 프록시를 사용할 때만 변경
+OPENAI_BASE_URL=https://api.openai.com/v1
+```
+
+그 다음 컨테이너를 다시 만듭니다.
+
+```bash
+docker compose up --build -d
+curl http://localhost:8088/api/llm/status
+```
+
+응답의 `provider`가 `openai`, `status`가 `online`이면 키와 모델 ID가 설정된 상태입니다. 이 상태 API는 비용이 드는 모델 호출을 하지 않으며, 실제 모델 접근 여부는 첫 채팅 요청에서 확인됩니다. OpenAI 연동은 공식 [Responses API 빠른 시작](https://platform.openai.com/docs/quickstart/make-your-first-api-request)의 요청 형식을 사용합니다.
+
+---
+
 ## 사전 준비 
 
 ### 선수 repo - https://github.com/edumgt/edumgt-lab-init
@@ -315,6 +350,137 @@ Ollama는 그 다음 단계에서 이런 일을 합니다.
 3. FE가 결과를 카드, 표, 차트로 시각화
 4. 사용자가 질문하면 `/api/chat` 이 Ollama에 프롬프트를 보내 자연어 설명 생성
 5. Ollama가 오프라인이면 BE의 fallback 설명으로 기본 해설 제공
+
+---
+
+## AWS 클라우드 AI 전환 가이드
+
+현재 저장소는 `scikit-learn`이 분석·예측을 수행하고 Ollama가 결과를 한국어로 설명하는 구조입니다. AWS에서는 **Amazon Bedrock을 Ollama의 관리형 LLM 대안으로 먼저 적용**하는 구성이 가장 자연스럽습니다. 학습량, 데이터, 운영 요구가 커질 때 S3와 SageMaker AI를 추가합니다.
+
+> **현재 코드 상태:** 이 저장소는 아직 `boto3`나 Bedrock 호출 코드를 포함하지 않습니다. 아래는 AWS로 확장할 때의 권장 아키텍처와 CLI 검증 예시입니다. Bedrock을 실제로 연결하려면 FastAPI의 Ollama 호출부에 Bedrock 어댑터를 추가하고 `boto3` 의존성을 넣어야 합니다.
+
+### repo 기능과 AWS 리소스 매핑
+
+| repo의 역할 | AWS 권장 리소스 | 적용 시점 | 비고 |
+|---|---|---|---|
+| 결과 요약·질의응답 (`/api/chat`) | **Amazon Bedrock** | 우선 적용 | Ollama 대신 관리형 LLM을 호출합니다. 모델 ID는 리전·계정에서 조회 후 선택합니다. |
+| CSV, 실습 데이터, 학습 산출물 | **Amazon S3** | 우선 적용 | `data/`, 업로드 CSV, 모델 아티팩트, 실험 결과를 분리 보관합니다. |
+| 현재 `scikit-learn` 학습 API | **Amazon SageMaker AI Training** | 대용량/반복 학습 시 | `/lab`, `/predict`, `/hotel-stock`의 학습을 비동기 학습 작업으로 분리합니다. 작은 수업용 데이터에는 기존 FastAPI 실행만으로 충분합니다. |
+| 학습 모델 온라인 추론 | **SageMaker AI Endpoint** | 안정적 API 서빙 필요 시 | 모델 버전·자동 확장·모니터링이 필요할 때 적용합니다. |
+| Qdrant 의미 검색 | **Amazon OpenSearch Serverless (vector engine)** 또는 EC2/ECS의 Qdrant | RAG/검색 기능 확장 시 | 관리형을 선호하면 OpenSearch, 기존 Qdrant 호환을 유지하려면 컨테이너 배포를 선택합니다. |
+| FastAPI·정적 FE 컨테이너 | **Amazon ECS on Fargate + Amazon ECR** 또는 EC2 | 운영 배포 시 | 수업/소규모는 EC2 + Docker Compose, 운영은 ECS를 권장합니다. |
+| 비밀·권한·로그 | **IAM, Secrets Manager, CloudWatch** | AWS 사용 시 필수 | 액세스 키를 코드·`.env`·이미지에 넣지 말고 역할(Role)과 최소 권한을 사용합니다. |
+
+### 권장 구성
+
+```mermaid
+flowchart LR
+  U[브라우저] --> A[FastAPI on ECS/EC2]
+  A -->|분석·예측| SK[scikit-learn\n현재 Python 코드]
+  A -->|결과 해설·대화| BR[Amazon Bedrock]
+  A -->|CSV·모델·실험 산출물| S3[Amazon S3]
+  S3 --> SM[Amazon SageMaker AI\n선택: 대규모 학습/엔드포인트]
+  A --> V[Qdrant on ECS/EC2 또는\nOpenSearch Serverless]
+  A --> CW[CloudWatch]
+```
+
+- **가장 작은 AWS 시작점:** EC2에서 현재 Docker 스택을 실행하고, Ollama만 Bedrock으로 교체하며 S3에 데이터/결과를 보관합니다.
+- **관리형 운영 구성:** ECR → ECS Fargate에 FastAPI를 배포하고, Bedrock·S3·CloudWatch를 기본으로 사용합니다. 재학습·모델 배포가 필요해질 때만 SageMaker AI를 추가합니다.
+- Bedrock은 모델을 학습시키는 서비스가 아니라 이 repo의 Ollama처럼 **생성·요약·질의응답**에 쓰는 서비스입니다. 수치 예측은 기존 `scikit-learn` 또는 SageMaker AI 학습 모델이 담당합니다.
+
+### 사전 준비와 보안 원칙
+
+1. AWS CLI v2를 설치하고 IAM Identity Center(SSO) 또는 워크로드의 IAM Role로 로그인합니다.
+2. 사용할 리전을 정합니다. 아래 예시는 서울 리전(`ap-northeast-2`)을 사용하지만, **Bedrock 모델과 SageMaker 인스턴스의 실제 제공 여부는 리전마다 다릅니다.**
+3. Bedrock 호출 역할에는 최소한 `bedrock:InvokeModel`(스트리밍 사용 시 `bedrock:InvokeModelWithResponseStream`)만, S3 역할에는 사용하는 버킷/접두사에 한정한 `s3:ListBucket`, `s3:GetObject`, `s3:PutObject`만 부여합니다.
+4. 일부 Bedrock 모델은 계정의 모델 접근 승인 또는 제공자 약관 동의가 필요할 수 있습니다. 배포 전에 해당 리전에서 모델 목록을 확인합니다.
+
+```bash
+export AWS_REGION=ap-northeast-2
+
+# 현재 AWS 자격 증명과 계정 확인
+aws sts get-caller-identity --region "$AWS_REGION"
+
+# 이 리전에서 선택 가능한 텍스트 출력 기반 모델 확인
+aws bedrock list-foundation-models \
+  --region "$AWS_REGION" \
+  --by-output-modality TEXT \
+  --query 'modelSummaries[].{id:modelId,name:modelName,provider:providerName}' \
+  --output table
+```
+
+### AWS CLI 예시 1 — Bedrock으로 Ollama 해설을 검증
+
+아래의 `BEDROCK_MODEL_ID`는 위 목록에서 **Converse를 지원하고 계정에서 사용할 수 있는 실제 모델 ID 또는 추론 프로필 ID**로 바꾸어야 합니다. 호출은 과금될 수 있으므로 짧은 프롬프트로 먼저 확인합니다.
+
+```bash
+export BEDROCK_MODEL_ID='여기에-목록에서-확인한-모델-ID'
+
+aws bedrock-runtime converse \
+  --region "$AWS_REGION" \
+  --model-id "$BEDROCK_MODEL_ID" \
+  --messages '[{"role":"user","content":[{"text":"주가 예측 정확도 0.62와 AUC 0.68을 초급 학습자에게 두 문장으로 설명해줘."}]}]' \
+  --inference-config '{"maxTokens":200,"temperature":0.2}'
+```
+
+FastAPI 연동 시에는 `OLLAMA_URL`, `OLLAMA_MODEL` 대신 예를 들어 `LLM_PROVIDER=bedrock`, `AWS_REGION`, `BEDROCK_MODEL_ID`를 환경 변수로 두고, `/api/chat`의 프롬프트·fallback 흐름은 그대로 재사용합니다. EC2/ECS/SageMaker에서는 액세스 키 환경 변수 대신 인스턴스·태스크·실행 역할을 사용합니다.
+
+### AWS CLI 예시 2 — S3에 학습 데이터와 결과 보관
+
+버킷 이름은 전 세계적으로 고유해야 합니다. 아래 예시는 버킷을 새로 만드는 명령이므로, 실제 이름으로 바꾼 뒤 한 번만 실행합니다.
+
+```bash
+export LAB_BUCKET='고유한-버킷-이름'
+
+# 서울 리전에 버킷 생성
+aws s3 mb "s3://$LAB_BUCKET" --region "$AWS_REGION"
+
+# 학습용 CSV 업로드 및 확인
+aws s3 sync ./data "s3://$LAB_BUCKET/python-ai-basic-lab/data/" \
+  --exclude '*' --include '*.csv'
+aws s3 ls "s3://$LAB_BUCKET/python-ai-basic-lab/data/" --recursive
+
+# SageMaker 학습 결과 또는 로컬 실험 산출물을 내려받는 예시
+aws s3 sync "s3://$LAB_BUCKET/python-ai-basic-lab/artifacts/" ./artifacts/aws/
+```
+
+개인정보 예시 파일(`data/personal_info.csv`)이나 실제 투자·고객 데이터를 올릴 때는 데이터 분류, S3 퍼블릭 액세스 차단, 서버 측 암호화(KMS 필요 여부 포함)를 먼저 검토합니다.
+
+### AWS CLI 예시 3 — SageMaker AI 학습 작업 준비·실행
+
+현재 Dockerfile은 웹 서버용이므로 SageMaker AI 학습에는 `train.py`와 의존성을 포함한 **별도 학습 컨테이너 이미지**를 ECR에 준비해야 합니다. 다음 명령은 그 이미지와 SageMaker 실행 역할이 준비된 뒤, S3의 CSV로 학습 작업을 시작하는 예시입니다. `ml.m5.large`는 예시일 뿐이므로 리전의 가용성·비용을 확인해 선택합니다.
+
+```bash
+export ACCOUNT_ID="$(aws sts get-caller-identity --query Account --output text)"
+export TRAINING_IMAGE="$ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/python-ai-basic-lab-train:latest"
+export SAGEMAKER_ROLE_ARN="arn:aws:iam::$ACCOUNT_ID:role/SageMakerExecutionRole"
+export TRAINING_JOB_NAME="python-ai-lab-$(date +%Y%m%d-%H%M%S)"
+
+aws sagemaker create-training-job \
+  --region "$AWS_REGION" \
+  --training-job-name "$TRAINING_JOB_NAME" \
+  --role-arn "$SAGEMAKER_ROLE_ARN" \
+  --algorithm-specification "TrainingImage=$TRAINING_IMAGE,TrainingInputMode=File" \
+  --input-data-config "[{\"ChannelName\":\"training\",\"DataSource\":{\"S3DataSource\":{\"S3DataType\":\"S3Prefix\",\"S3Uri\":\"s3://$LAB_BUCKET/python-ai-basic-lab/data/\",\"S3DataDistributionType\":\"FullyReplicated\"}}}]" \
+  --output-data-config "S3OutputPath=s3://$LAB_BUCKET/python-ai-basic-lab/model-artifacts/" \
+  --resource-config 'InstanceType=ml.m5.large,InstanceCount=1,VolumeSizeInGB=30' \
+  --stopping-condition 'MaxRuntimeInSeconds=3600'
+
+# 상태 확인 및 비용 보호를 위한 중지 예시
+aws sagemaker describe-training-job --region "$AWS_REGION" --training-job-name "$TRAINING_JOB_NAME"
+aws sagemaker stop-training-job --region "$AWS_REGION" --training-job-name "$TRAINING_JOB_NAME"
+```
+
+`stop-training-job`은 실행 중인 작업을 중지하므로, 학습을 계속할 때는 실행하지 않습니다. 모든 학습 작업에는 `MaxRuntimeInSeconds`를 설정해 비용 상한을 두는 것을 권장합니다.
+
+### 구현 순서 제안
+
+1. Bedrock `converse` 호출을 별도 함수/어댑터로 추가하고 `/api/chat`만 교체합니다. 기존 Ollama fallback은 개발 환경용으로 유지합니다.
+2. 업로드 CSV와 실험 결과를 S3 접두사(`data/`, `artifacts/`, `model-artifacts/`)로 분리합니다.
+3. 학습 시간이 길어지거나 동시 사용자가 늘어날 때 SageMaker AI Training과 Endpoint로 학습·추론을 분리합니다.
+4. Qdrant 데이터가 운영 수준으로 커질 때 OpenSearch Serverless vector engine 또는 관리되는 Qdrant 배포를 선택합니다.
+
+관련 공식 문서: [Bedrock 모델 조회](https://docs.aws.amazon.com/bedrock/latest/userguide/models-get-info.html), [Bedrock Converse CLI](https://docs.aws.amazon.com/cli/latest/reference/bedrock-runtime/converse.html), [S3 sync CLI](https://docs.aws.amazon.com/cli/latest/reference/s3/sync.html), [SageMaker AI 학습 작업 CLI](https://docs.aws.amazon.com/cli/latest/reference/sagemaker/create-training-job.html)
 
 ---
 
@@ -1170,4 +1336,3 @@ python-ai-basic-lab/
 - **정보통신산업진흥원(NIPA)**  
   전화: [043-931-5758](tel:0439315758)  
   이메일: aiinfra@nipa.kr  
-

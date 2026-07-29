@@ -943,7 +943,7 @@ function renderAssistantRouteResult(routeInfo) {
       <div class="flex flex-wrap items-center gap-2">
         <span class="px-2.5 py-1 rounded-full bg-sky-50 border border-sky-200 text-[11px] font-semibold text-sky-700">${escapeHtml(routeInfo.route_label || '추천 랩')}</span>
         <span class="px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-[11px] font-semibold text-emerald-700">${escapeHtml(routeInfo.company || '관심 종목')}</span>
-        <span class="text-[11px] text-slate-500">${routeInfo.llm_used === 'true' ? 'Ollama 해석 사용' : '규칙 기반 해석 사용'}</span>
+        <span class="text-[11px] text-slate-500">${routeInfo.llm_used === 'true' ? `${routeInfo.llm_provider === 'openai' ? 'OpenAI' : 'Ollama'} 해석 사용` : '규칙 기반 해석 사용'}</span>
       </div>
       <div>
         <div class="text-sm font-bold text-slate-900">${escapeHtml(routeInfo.title || '')}</div>

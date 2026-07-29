@@ -50,6 +50,10 @@ DATA_DIR = BASE_DIR / "data"
 
 OLLAMA_URL   = os.getenv("OLLAMA_URL", "http://localhost:11434")
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3.2")
+LLM_PROVIDER = os.getenv("LLM_PROVIDER", "ollama").strip().lower()
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "").strip()
+OPENAI_MODEL = os.getenv("OPENAI_MODEL", "").strip()
+OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1").rstrip("/")
 QDRANT_URL   = os.getenv("QDRANT_URL", "http://localhost:6333")
 QDRANT_TIMEOUT = float(os.getenv("QDRANT_TIMEOUT_SECONDS", "8.0"))
 QDRANT_MAX_POINTS_LIMIT = int(os.getenv("QDRANT_MAX_POINTS_LIMIT", "200"))
@@ -666,6 +670,68 @@ def _assistant_route_fallback(message: str) -> dict[str, str]:
     }
 
 
+def _extract_openai_response_text(payload: dict[str, Any]) -> str:
+    """Responses API 응답에서 생성 텍스트를 안전하게 추출합니다."""
+    direct_text = payload.get("output_text")
+    if isinstance(direct_text, str) and direct_text.strip():
+        return direct_text.strip()
+
+    texts: list[str] = []
+    for output in payload.get("output", []):
+        if output.get("type") != "message":
+            continue
+        for content in output.get("content", []):
+            if content.get("type") == "output_text" and isinstance(content.get("text"), str):
+                texts.append(content["text"])
+    return "\n".join(texts).strip()
+
+
+async def _generate_llm_text(prompt: str, timeout: float = 30.0) -> str:
+    """선택한 LLM 공급자에서 텍스트를 생성합니다.
+
+    `LLM_PROVIDER=ollama`는 기존 로컬 API를, `LLM_PROVIDER=openai`는
+    OpenAI Responses API를 사용합니다. 호출 실패는 각 API의 기존 fallback이 처리합니다.
+    """
+    if LLM_PROVIDER == "ollama":
+        async with httpx.AsyncClient(timeout=timeout) as client:
+            resp = await client.post(
+                f"{OLLAMA_URL}/api/generate",
+                json={"model": OLLAMA_MODEL, "prompt": prompt, "stream": False},
+            )
+            resp.raise_for_status()
+            text = str(resp.json().get("response", "")).strip()
+            if not text:
+                raise RuntimeError("Ollama가 빈 응답을 반환했습니다.")
+            return text
+
+    if LLM_PROVIDER == "openai":
+        if not OPENAI_API_KEY:
+            raise RuntimeError("OPENAI_API_KEY 환경 변수가 설정되지 않았습니다.")
+        if not OPENAI_MODEL:
+            raise RuntimeError("OPENAI_MODEL 환경 변수가 설정되지 않았습니다.")
+
+        async with httpx.AsyncClient(timeout=timeout) as client:
+            resp = await client.post(
+                f"{OPENAI_BASE_URL}/responses",
+                headers={"Authorization": f"Bearer {OPENAI_API_KEY}"},
+                json={
+                    "model": OPENAI_MODEL,
+                    "input": [{
+                        "role": "user",
+                        "content": [{"type": "input_text", "text": prompt}],
+                    }],
+                    "max_output_tokens": 300,
+                },
+            )
+            resp.raise_for_status()
+            text = _extract_openai_response_text(resp.json())
+            if not text:
+                raise RuntimeError("OpenAI가 텍스트 응답을 반환하지 않았습니다.")
+            return text
+
+    raise RuntimeError("LLM_PROVIDER는 'ollama' 또는 'openai'여야 합니다.")
+
+
 async def _assistant_route_with_llm(message: str, fallback: dict[str, str]) -> dict[str, str]:
     prompt = (
         "당신은 주식 AI 학습 웹앱의 라우팅 도우미입니다.\n"
@@ -680,13 +746,7 @@ async def _assistant_route_with_llm(message: str, fallback: dict[str, str]) -> d
         "- JSON 외의 문장은 절대 쓰지 마세요.\n\n"
         f"사용자 질문: {message}"
     )
-    async with httpx.AsyncClient(timeout=10.0) as client:
-        resp = await client.post(
-            f"{OLLAMA_URL}/api/generate",
-            json={"model": OLLAMA_MODEL, "prompt": prompt, "stream": False},
-        )
-        resp.raise_for_status()
-        raw = resp.json().get("response", "").strip()
+    raw = await _generate_llm_text(prompt, timeout=10.0)
 
     match = re.search(r"\{.*\}", raw, flags=re.DOTALL)
     if not match:
@@ -1764,13 +1824,7 @@ async def chat(req: ChatRequest) -> dict[str, str]:
     )
 
     try:
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            resp = await client.post(
-                f"{OLLAMA_URL}/api/generate",
-                json={"model": OLLAMA_MODEL, "prompt": prompt, "stream": False},
-            )
-            resp.raise_for_status()
-            return {"response": resp.json().get("response", "답변을 가져올 수 없습니다.")}
+        return {"response": await _generate_llm_text(prompt, timeout=30.0)}
     except Exception:
         return {"response": _fallback_explanation(req.message, ctx)}
 
@@ -1788,8 +1842,10 @@ async def assistant_route(req: AssistantRouteRequest) -> dict[str, str]:
     try:
         route_info = await _assistant_route_with_llm(clean, fallback)
         route_info["llm_used"] = "true"
+        route_info["llm_provider"] = LLM_PROVIDER
     except Exception:
         route_info["llm_used"] = "false"
+        route_info["llm_provider"] = ""
 
     route_info["message"] = clean
     route_info["helper_text"] = (
@@ -2155,14 +2211,8 @@ async def _refine_consultant_note_with_llm(message: str, payload: dict[str, Any]
         "답변은 평문 한 단락으로만 작성하세요."
     )
     try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            resp = await client.post(
-                f"{OLLAMA_URL}/api/generate",
-                json={"model": OLLAMA_MODEL, "prompt": prompt, "stream": False},
-            )
-            resp.raise_for_status()
-            text = resp.json().get("response", "").strip()
-            return text or fallback_note, True
+        text = await _generate_llm_text(prompt, timeout=10.0)
+        return text or fallback_note, True
     except Exception:
         return fallback_note, False
 
@@ -2510,18 +2560,36 @@ async def predict_target(
     }
 
 
-@app.get("/api/ollama/status", tags=["stock"])
-async def ollama_status() -> dict[str, Any]:
-    """Ollama 서버 연결 상태를 반환합니다."""
+@app.get("/api/llm/status", tags=["stock"])
+@app.get("/api/ollama/status", tags=["stock"], deprecated=True)
+async def llm_status() -> dict[str, Any]:
+    """선택한 LLM 공급자의 설정 또는 연결 상태를 반환합니다."""
+    if LLM_PROVIDER == "openai":
+        configured = bool(OPENAI_API_KEY and OPENAI_MODEL)
+        return {
+            "status": "online" if configured else "offline",
+            "models": [OPENAI_MODEL] if configured else [],
+            "provider": "openai",
+            "detail": "configured" if configured else "OPENAI_API_KEY와 OPENAI_MODEL이 필요합니다.",
+        }
+
+    if LLM_PROVIDER != "ollama":
+        return {
+            "status": "offline",
+            "models": [],
+            "provider": LLM_PROVIDER,
+            "detail": "LLM_PROVIDER는 ollama 또는 openai여야 합니다.",
+        }
+
     try:
         async with httpx.AsyncClient(timeout=3.0) as client:
             resp = await client.get(f"{OLLAMA_URL}/api/tags")
             if resp.status_code == 200:
                 models = [m["name"] for m in resp.json().get("models", [])]
-                return {"status": "online", "models": models}
+                return {"status": "online", "models": models, "provider": "ollama"}
     except Exception:
         pass
-    return {"status": "offline", "models": []}
+    return {"status": "offline", "models": [], "provider": "ollama"}
 
 
 # ---------------------------------------------------------------------------
